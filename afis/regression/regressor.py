@@ -5,8 +5,6 @@ This module provides a clean API for A-FIS regression tasks:
 - AFISRegressor: Train, predict, save/load models
 - evaluate_kfold: K-fold cross-validation
 - generate_rule_base: Wang-Mendel rule generation wrapper
-
-Author: PhD Scripts
 """
 
 import copy
@@ -14,7 +12,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from scipy.spatial import distance
 
@@ -91,7 +89,7 @@ class AFISRegressor:
         self.is_fitted = False
         
     def fit(self, X_train, y_train, rule_base, X_val=None, y_val=None,
-            optimize_imp_params=True, optimize_k=True, show_progress=True):
+            optimize_imp_params=True, optimize_k=False, show_progress=True):
         """
         Train the model.
         
@@ -115,7 +113,7 @@ class AFISRegressor:
         optimize_imp_params : bool
             Whether to optimize implication parameters (default: True).
         optimize_k : bool
-            Whether to search for optimal k (default: True).
+            Whether to search for optimal k (default: False).
         show_progress : bool
             Whether to show progress bars (default: True).
             
@@ -589,8 +587,6 @@ def benchmark_method(X, y, rule_base_generator, config, n_splits=5,
         - 'repetition_results': List of per-repetition results
         - 'all_test_rmses': List of all test RMSEs
     """
-    from sklearn.model_selection import train_test_split
-    
     # Check if using weighted_avg
     uses_weighted_avg = (
         isinstance(config.get('agg_method'), list) and 

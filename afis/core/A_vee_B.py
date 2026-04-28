@@ -1,8 +1,4 @@
-# import matplotlib.pyplot as plt
 import numpy as np
-
-# Function intended for calculating the area of ν(A ∨ B), where A and B are fuzzy numbers.
-# Supports both analytical (trapezoidal) and numerical (Gaussian/generic) calculations.
 
 from .afis_utils import Triangular, Trapezoidal, InferiorBorder, SuperiorBorder, Gaussian
 
@@ -232,185 +228,108 @@ def nu_A_vee_B_numerical(A, B, U, disc=1000):
 # Analytical Calculations (original implementation for trapezoidal inputs)
 # ============================================================================
 
-# Line equation y(x) from points (x1,y1) and (x2,y2)
 def line_equation(x1, y1, x2, y2):
-    # Calculate the slope (m)
     slope = (y2 - y1) / (x2 - x1)
-    # Calculate the y-intercept (b)
     intercept = y1 - slope * x1
     return slope, intercept
-    
-# Definite integral of y(x)= m*x+int between points int_limits=[a,b]
-def def_integral_line(m,int,int_limits):
-    def_integral_line=0.5*m*(int_limits[1]**2-int_limits[0]**2)+int*(int_limits[1]-int_limits[0])
-    return def_integral_line
 
-# Intersection point (x,y) between two lines.
+
+def def_integral_line(m, int, int_limits):
+    return 0.5 * m * (int_limits[1]**2 - int_limits[0]**2) + int * (int_limits[1] - int_limits[0])
+
+
 def find_intersection(m1, int_1, m2, int_2):
     x = (int_2 - int_1) / (m1 - m2)
     y = m1 * x + int_1
     return x, y
 
-# Calculation of normalized area of the supreme of two fuzzy numbers in the lattice RF(U)
-def nu_A_vee_B(A,B,U):
 
-    if A[0] == A[1]:
-        A_crisp_left=1
-    else:
-        A_crisp_left=0
+def nu_A_vee_B(A, B, U):
+    A_crisp_left  = 1 if A[0] == A[1] else 0
+    A_crisp_right = 1 if A[2] == A[3] else 0
+    B_crisp_left  = 1 if B[0] == B[1] else 0
+    B_crisp_right = 1 if B[2] == B[3] else 0
 
-    if A[2] == A[3]:
-        A_crisp_right=1
-    else:
-        A_crisp_right=0
-
-    if B[0] == B[1]:
-        B_crisp_left=1
-    else:
-        B_crisp_left=0
-    if B[2] == B[3]:
-        B_crisp_right=1
-    else:
-        B_crisp_right=0
-    
-# Left section
-
-    if A_crisp_left==0 and B_crisp_left==0: #caso no crisp a la izquierda
-        # print('Left_0_0')
-        
+    # Left section
+    if A_crisp_left == 0 and B_crisp_left == 0:
         m_A1, int_A1 = line_equation(A[0], 0, A[1], 1)
         m_B1, int_B1 = line_equation(B[0], 0, B[1], 1)
-
-        #definition of integrals
         if (B[0] <= A[0]) and (B[1] <= A[1]):
-            Area_left=def_integral_line(m_B1,int_B1,[B[0],B[1]])
-            # print("Caso 1: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_B1, int_B1, [B[0], B[1]])
         elif (A[0] <= B[0]) and (A[1] <= B[1]):
-             Area_left=def_integral_line(m_A1,int_A1,[A[0],A[1]])
-            #  print("Caso 2: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_A1, int_A1, [A[0], A[1]])
         elif (A[0] < B[0]) and (B[1] < A[1]):
-             u_c,_=find_intersection(m_A1,int_A1,m_B1,int_B1)
-             Area_left_1=def_integral_line(m_A1,int_A1,[A[0],u_c])
-             Area_left_2=def_integral_line(m_B1,int_B1,[u_c,B[1]])
-             Area_left=Area_left_1+Area_left_2
-            #  print("Caso 3: ","Area left: ", Area_left)
+            u_c, _ = find_intersection(m_A1, int_A1, m_B1, int_B1)
+            Area_left = (def_integral_line(m_A1, int_A1, [A[0], u_c]) +
+                         def_integral_line(m_B1, int_B1, [u_c, B[1]]))
         elif (B[0] < A[0]) and (A[1] < B[1]):
-             u_c,_=find_intersection(m_A1,int_A1,m_B1,int_B1)
-             Area_left_1=def_integral_line(m_B1,int_B1,[B[0],u_c])
-             Area_left_2=def_integral_line(m_A1,int_A1,[u_c,A[1]])
-             Area_left=Area_left_1+Area_left_2
-            #  print("Caso 4: ","Area left: ", Area_left)
-        
-    if A_crisp_left==0 and B_crisp_left==1: #caso no crisp a la izquierda
-        # print('Left_0_1')
+            u_c, _ = find_intersection(m_A1, int_A1, m_B1, int_B1)
+            Area_left = (def_integral_line(m_B1, int_B1, [B[0], u_c]) +
+                         def_integral_line(m_A1, int_A1, [u_c, A[1]]))
+
+    if A_crisp_left == 0 and B_crisp_left == 1:
         m_A1, int_A1 = line_equation(A[0], 0, A[1], 1)
-
-        #definition of integrals
         if (B[0] <= A[0]) and (B[1] <= A[1]):
-            Area_left=0
-            # print("Caso 1: ","Area left: ", Area_left)
+            Area_left = 0
         elif (A[0] <= B[0]) and (A[1] <= B[1]):
-             Area_left=def_integral_line(m_A1,int_A1,[A[0],A[1]])
-            #  print("Caso 2: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_A1, int_A1, [A[0], A[1]])
         elif (A[0] < B[0]) and (B[1] < A[1]):
-             Area_left=def_integral_line(m_A1,int_A1,[A[0],B[0]])
-            #  print("Caso 3: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_A1, int_A1, [A[0], B[0]])
 
-    if A_crisp_left==1 and B_crisp_left==0: #caso no crisp a la izquierda
-        # print('Left_1_0')
+    if A_crisp_left == 1 and B_crisp_left == 0:
         m_B1, int_B1 = line_equation(B[0], 0, B[1], 1)
-
-        #definition of integrals
         if (A[0] <= B[0]) and (A[1] <= B[1]):
-            Area_left=0
-            # print("Caso 1: ","Area left: ", Area_left)
+            Area_left = 0
         elif (B[0] <= A[0]) and (B[1] <= A[1]):
-             Area_left=def_integral_line(m_B1,int_B1,[B[0],B[1]])
-            #  print("Caso 2: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_B1, int_B1, [B[0], B[1]])
         elif (B[0] < A[0]) and (A[1] < B[1]):
-             Area_left=def_integral_line(m_B1,int_B1,[B[0],A[0]])
-            #  print("Caso 3: ","Area left: ", Area_left)
+            Area_left = def_integral_line(m_B1, int_B1, [B[0], A[0]])
 
-    if A_crisp_left==1 and B_crisp_left==1: #caso no crisp a la izquierda
-        # print('Left_1_1')
-        Area_left=0
-        # print("Area left: ", Area_left)
+    if A_crisp_left == 1 and B_crisp_left == 1:
+        Area_left = 0
 
-    Area_left=Area_left
+    # Middle section
+    Area_middle = max(A[2], B[2]) - min(A[1], B[1])
 
-    # (1/(U[1]-U[0]))*
-
-    #Middle section -----------------------------------------------
-    Area_middle=max([A[2],B[2]])-min([A[1],B[1]])
-    # print('Area_middle: ',Area_middle)
-
-
-    #Right section -----------------------------------------------
-    if A_crisp_right==0 and B_crisp_right==0: #caso no crisp a la derecha
-        # print('Right_0_0')
-        
+    # Right section
+    if A_crisp_right == 0 and B_crisp_right == 0:
         m_A2, int_A2 = line_equation(A[2], 1, A[3], 0)
         m_B2, int_B2 = line_equation(B[2], 1, B[3], 0)
-
-        #definition of integrals
-        if (B[2] <= A[2]) & (B[3] <= A[3]):
-            Area_right=def_integral_line(m_A2,int_A2,[A[2],A[3]])
-            # print("Caso 5, Area right: ", Area_right)
+        if (B[2] <= A[2]) and (B[3] <= A[3]):
+            Area_right = def_integral_line(m_A2, int_A2, [A[2], A[3]])
         elif (A[2] <= B[2]) and (A[3] <= B[3]):
-            Area_right=def_integral_line(m_B2,int_B2,[B[2],B[3]])
-            # print("Caso 6, Area right: ", Area_right)
+            Area_right = def_integral_line(m_B2, int_B2, [B[2], B[3]])
         elif (A[2] < B[2]) and (B[3] < A[3]):
-             u_c,_=find_intersection(m_A2,int_A2,m_B2,int_B2)
-             Area_right_1=def_integral_line(m_B2,int_B2,[B[2],u_c])
-             Area_right_2=def_integral_line(m_A2,int_A2,[u_c,A[3]])
-             Area_right=Area_right_1+Area_right_2
-            #  print("Caso 8, Area right: ", Area_right)
+            u_c, _ = find_intersection(m_A2, int_A2, m_B2, int_B2)
+            Area_right = (def_integral_line(m_B2, int_B2, [B[2], u_c]) +
+                          def_integral_line(m_A2, int_A2, [u_c, A[3]]))
         elif (B[2] < A[2]) and (A[3] < B[3]):
-             u_c,_=find_intersection(m_A2,int_A2,m_B2,int_B2)
-             Area_right_1=def_integral_line(m_A2,int_A2,[A[2],u_c])
-             Area_right_2=def_integral_line(m_B2,int_B2,[u_c,B[3]])
-             Area_right=Area_right_1+Area_right_2
-            #  print("Caso 7: ","Area right: ", Area_right)
-        
+            u_c, _ = find_intersection(m_A2, int_A2, m_B2, int_B2)
+            Area_right = (def_integral_line(m_A2, int_A2, [A[2], u_c]) +
+                          def_integral_line(m_B2, int_B2, [u_c, B[3]]))
 
-
-    if A_crisp_right==0 and B_crisp_right==1: #caso no crisp a la izquierda
-        # print('Right_0_1')
+    if A_crisp_right == 0 and B_crisp_right == 1:
         m_A2, int_A2 = line_equation(A[2], 1, A[3], 0)
-
-        #definition of integrals
         if (A[2] <= B[2]) and (A[3] <= B[3]):
-            Area_right=0
-            # print("Caso 6, Area right: ", Area_right)
+            Area_right = 0
         elif (A[2] <= B[2]) and (B[3] <= A[3]):
-            Area_right=def_integral_line(m_A2,int_A2,[B[2],A[3]]) #por aqui!!!
-            # print("Caso 8, Area right: ", Area_right)
+            Area_right = def_integral_line(m_A2, int_A2, [B[2], A[3]])
         elif (B[2] <= A[2]) and (B[3] <= A[3]):
-             Area_right=def_integral_line(m_A2,int_A2,[A[2],A[3]])
-            #  print("Caso 5, Area right: ", Area_right)
+            Area_right = def_integral_line(m_A2, int_A2, [A[2], A[3]])
 
-    if A_crisp_right==1 and B_crisp_right==0: #caso no crisp a la izquierda
-        # print('Right_1_0')
+    if A_crisp_right == 1 and B_crisp_right == 0:
         m_B2, int_B2 = line_equation(B[2], 1, B[3], 0)
-
         if (A[2] <= B[2]) and (A[3] <= B[3]):
-            Area_right=def_integral_line(m_B2,int_B2,[B[2],B[3]])
-            # print("Caso 6: Area right: ", Area_right)
-
+            Area_right = def_integral_line(m_B2, int_B2, [B[2], B[3]])
         elif (B[2] <= A[2]) and (B[3] <= A[3]):
-             Area_right=0
-            #  print("Caso 5: Area right: ", Area_right)
-
+            Area_right = 0
         elif (B[2] < A[2]) and (A[3] < B[3]):
-             Area_right=def_integral_line(m_B2,int_B2,[A[3],B[3]])
-            #  print("Caso 7: Area right: ", Area_right)
+            Area_right = def_integral_line(m_B2, int_B2, [A[3], B[3]])
 
-    if A_crisp_right==1 and B_crisp_right==1: #caso crisp a la derecha
-        # print('Right_1_1')
-        Area_right=0
-        # print("Area right: ", Area_right)
+    if A_crisp_right == 1 and B_crisp_right == 1:
+        Area_right = 0
 
-    Norm_Area= (1/(U[1]-U[0]))*(Area_left+Area_middle+Area_right)
+    Norm_Area = (1 / (U[1] - U[0])) * (Area_left + Area_middle + Area_right)
 
     return Norm_Area
 

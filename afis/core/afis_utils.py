@@ -5,9 +5,11 @@ Contains:
 - Membership function classes: Triangular, Trapezoidal, InferiorBorder, SuperiorBorder, Gaussian
 - Fuzzy rule structures: FuzzySet, FuzzyRule, FuzzyRuleBase
 - Defuzzification: centroid
+
+Original code by Renato Lopes Moura, with minor modifications:
+https://github.com/renatolm/wang-mendel
 """
 
-from __future__ import division
 import numpy as np
 
 # ============================================================================
@@ -112,8 +114,7 @@ class Gaussian:
     def __init__(self, center, sigma):
         self.center = center
         self.sigma = sigma
-        # For compatibility with other membership functions
-        self.top = center  # Core is a single point
+        self.top = center
         
     def __repr__(self):
         return "gaussian(x, center={}, σ={})".format(self.center, self.sigma)
@@ -183,28 +184,10 @@ class FuzzySet:
 # ============================================================================
 
 def centroid(x, f_x):
-    """
-    Centroid defuzzification method.
-    
-    Parameters:
-    - x: Universe of discourse values
-    - f_x: Membership values at each point in x
-    
-    Returns:
-    - Crisp output value (centroid of the fuzzy set)
-    """
+    """Centroid defuzzification: returns crisp value or 0 if total membership is zero."""
+    x, f_x = np.asarray(x), np.asarray(f_x)
     if len(x) != len(f_x):
-        raise ValueError("Argument arrays must have the same size")	
-        
-    num = 0
-    den = 0
-    
-    for i in range(len(x)):
-        num = num + (x[i] * f_x[i])
-        den = den + f_x[i]
-        
-    if den > 0:
-        return num / den
-    else:
-        return 0
+        raise ValueError("Argument arrays must have the same size")
+    den = f_x.sum()
+    return float(np.dot(x, f_x) / den) if den > 0 else 0
 

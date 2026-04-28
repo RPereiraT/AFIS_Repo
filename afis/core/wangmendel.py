@@ -4,13 +4,14 @@ Wang-Mendel Fuzzy Rule Learning Algorithm
 This module provides functions for automatic generation of fuzzy IF-THEN rules
 from input-output data pairs using the Wang-Mendel method.
 
-Uses afis.core.afis_utils classes.
+Original code by Renato Lopes Moura, with minor modifications:
+https://github.com/renatolm/wang-mendel
 """
 
 import numpy as np
 import string
 import copy
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import plotly.graph_objects as go
 
@@ -310,7 +311,6 @@ def filter_rules_by_strength(rule_base, n_rules):
 
 def _count_by_consequent(rule_base):
     """Count rules per consequent, return dict sorted by consequent name."""
-    from collections import Counter
     counts = Counter(rule.consequent.name for rule in rule_base.ruleBase)
     return dict(sorted(counts.items()))
 
@@ -336,7 +336,6 @@ def filter_rules_top_n(rule_base, n_rules):
     filtered_rules = sorted_rules[:n_rules]
     
     # Create new rule base
-    from .afis_utils import FuzzyRuleBase
     new_rb = FuzzyRuleBase()
     new_rb.ruleBase = filtered_rules
     new_rb.inputRanges = rule_base.inputRanges

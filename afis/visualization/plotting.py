@@ -8,7 +8,6 @@ This module provides plotting and diagnostic functions for A-FIS:
 - Activation curve analysis
 """
 
-from __future__ import division
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
