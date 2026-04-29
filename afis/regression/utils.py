@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 
 # =============================================================================
@@ -223,8 +224,6 @@ def compute_metrics(y_true, y_pred):
     metrics : dict
         Dictionary with RMSE, MAE, and R².
     """
-    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-    
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     

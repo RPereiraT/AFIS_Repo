@@ -72,7 +72,6 @@ def _evaluate_membership(mf, x):
                 return 1.0
             elif c < x < d:
                 return (d - x) / (d - c) if d != c else 1.0
-            return 0.0
     
     raise ValueError(f"Unsupported membership function type: {type(mf)}")
 
@@ -234,8 +233,8 @@ def line_equation(x1, y1, x2, y2):
     return slope, intercept
 
 
-def def_integral_line(m, int, int_limits):
-    return 0.5 * m * (int_limits[1]**2 - int_limits[0]**2) + int * (int_limits[1] - int_limits[0])
+def def_integral_line(m, intercept, int_limits):
+    return 0.5 * m * (int_limits[1]**2 - int_limits[0]**2) + intercept * (int_limits[1] - int_limits[0])
 
 
 def find_intersection(m1, int_1, m2, int_2):

@@ -8,9 +8,15 @@ This module provides plotting and diagnostic functions for A-FIS:
 - Activation curve analysis
 """
 
+import random
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    from tqdm import tqdm
 
 # Import from core module
 from ..core.A_FIS import (
@@ -741,22 +747,14 @@ def show_svi_table(rule_base, input_formatted, imp_params=None):
 
 
 def show_detailed_diagnostic(rule_base, input_formatted, imp_params=None, agg_method=None):
-    """
-    Show detailed step-by-step calculations for A_FIS.
-    Works for both 1D and ND cases.
-    """
+    """Show A_FIS diagnostic — delegates to show_svi_table for per-rule details."""
     if imp_params is None:
         imp_params = getattr(rule_base, '_last_imp_params', ['luka', 1])
     if agg_method is None:
         agg_method = getattr(rule_base, '_last_agg_method', 'avg')
-    
-    print("=" * 100)
-    print("DETAILED A_FIS DIAGNOSTIC")
-    print("=" * 100)
-    print(f"\nImplication: {imp_params[0]} (param={imp_params[1] if len(imp_params) > 1 else 1})")
+    print(f"Implication: {imp_params[0]} (param={imp_params[1] if len(imp_params) > 1 else 1})")
     print(f"Aggregation: {agg_method}")
-    print("\nFor detailed step-by-step calculations, use show_svi_table()")
-    print("=" * 100)
+    show_svi_table(rule_base, input_formatted, imp_params)
 
 
 def show_detailed_diagnostic_nd(rule_base, input_formatted, imp_params=None, agg_method=None):
@@ -773,12 +771,11 @@ def test_swapped_rule_base(rule_base, input_formatted, shuffle_type='reversed', 
     rule_base_swapped = FuzzyRuleBase()
     rule_base_swapped.setInputRanges(rule_base.inputRanges)
     rule_base_swapped.setOutputRange(rule_base.outputRange)
-    
+
     if shuffle_type == 'reversed':
         for i in range(rule_base.size()-1, -1, -1):
             rule_base_swapped.appendRule(rule_base.ruleBase[i])
     elif shuffle_type == 'random':
-        import random
         if random_seed is not None:
             random.seed(random_seed)
         indices = list(range(rule_base.size()))
@@ -794,8 +791,6 @@ def test_swapped_rule_base(rule_base, input_formatted, shuffle_type='reversed', 
 
 def test_multiple_random_shuffles(rule_base, input_formatted, num_tests=10, random_seed=None):
     """Test order independence with multiple random rule shuffles."""
-    import random
-    
     _, _, y_crisp_original, _ = run_afis(input_formatted, rule_base)
     
     shuffled_outputs = []
@@ -837,7 +832,6 @@ def compute_activation_curves(rule_base, dim, base_width=0, step=1, imp_params=N
     """
     Compute activation curves (S_A vs input position) for a single dimension.
     """
-    from tqdm import tqdm
     from ..core import A_vee_B as A_vee_B_module
     
     half_base = base_width / 2

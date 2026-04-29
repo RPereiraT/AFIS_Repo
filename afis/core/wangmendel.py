@@ -116,8 +116,8 @@ def learn_fuzzy_rules(X, y,
     rule_base : FuzzyRuleBase
         The generated fuzzy rule base (one rule per data point).
     """
-    X = np.array(X) if not isinstance(X, np.ndarray) else X
-    y = np.array(y) if not isinstance(y, np.ndarray) else y
+    X = np.asarray(X)
+    y = np.asarray(y)
     
     n_samples, n_dims = X.shape
     
@@ -148,31 +148,15 @@ def learn_fuzzy_rules(X, y,
         antecedents = []
         strength = 1.0
         
-        # Find best antecedent for each input dimension
         for j in range(n_dims):
-            max_pertinence = 0
-            best_antecedent = None
-            
-            for region in input_regions[j]:
-                pertinence = region.set.pertinence(X[i, j])
-                if pertinence > max_pertinence:
-                    best_antecedent = region
-                    max_pertinence = pertinence
-            
+            rated = [(r, r.set.pertinence(X[i, j])) for r in input_regions[j]]
+            best_antecedent, best_perturb = max(rated, key=lambda x: x[1])
             antecedents.append(best_antecedent)
-            strength *= max_pertinence
-        
-        # Find best consequent
-        max_pertinence = 0
-        best_consequent = None
-        
-        for region in output_regions:
-            pertinence = region.set.pertinence(y[i])
-            if pertinence > max_pertinence:
-                best_consequent = region
-                max_pertinence = pertinence
-        
-        strength *= max_pertinence
+            strength *= best_perturb
+
+        rated_out = [(r, r.set.pertinence(y[i])) for r in output_regions]
+        best_consequent, out_perturb = max(rated_out, key=lambda x: x[1])
+        strength *= out_perturb
         
         # Create and append rule
         rule = FuzzyRule(antecedents, best_consequent, strength)
@@ -446,13 +430,7 @@ def plot_consequents_distribution(rule_base):
     fig : plotly.graph_objects.Figure
         The histogram figure.
     """
-    consequent_names = sorted([rule.consequent.name for rule in rule_base.ruleBase])
-    
-    # Count occurrences
-    counts = defaultdict(int)
-    for name in consequent_names:
-        counts[name] += 1
-    
+    counts = Counter(rule.consequent.name for rule in rule_base.ruleBase)
     names = sorted(counts.keys())
     values = [counts[n] for n in names]
     

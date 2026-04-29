@@ -158,7 +158,7 @@ class AFISRegressor:
             self.df_train['best_param_value'] = self.config['imp_params'][1]
         
         # Step 3: Find optimal k
-        k_fixed = self.config.get('k_fixed', None)
+        k_fixed = self.config.get('k_fixed')
         
         if k_fixed is not None:
             # Use fixed k value (no optimization)
@@ -829,7 +829,7 @@ def _find_best_rule(input_formatted, rules, rule_base, agg_method, disc, t_norm_
             input_formatted, temp_rb, agg_method, disc,
             t_norm_type, imp_params
         )
-        activation = list(max_vals.values())[0][0] if max_vals else 0
+        activation = next(iter(max_vals.values()))[0] if max_vals else 0
         if activation > best_activation:
             best_activation = activation
             best_rule = rule
@@ -1047,14 +1047,11 @@ def _predict_with_model(X_test, df_train, rule_base, scaler, k_neighbors, p_norm
             y_pred = centroid(U, output)
             neighbor_predictions.append(y_pred)
         
-        if len(neighbor_predictions) == 0:
+        if not neighbor_predictions:
             predictions.append(0)
-        elif len(neighbor_predictions) == 1:
-            predictions.append(neighbor_predictions[0])
         else:
             weights = _compute_distance_weights(k_distances[:len(neighbor_predictions)])
-            weighted_pred = np.average(neighbor_predictions, weights=weights)
-            predictions.append(weighted_pred)
+            predictions.append(float(np.average(neighbor_predictions, weights=weights)))
     
     return predictions
 
