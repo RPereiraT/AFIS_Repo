@@ -174,6 +174,14 @@ print(f"RMSE: {results['mean_rmse']:.4f} ± {results['std_rmse']:.4f}")
 
 ---
 
+## License
+
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute this code, provided that the original authors are credited.
+
+If you use this library in academic work, please cite the reference paper above.
+
+---
+
 ## Credits
 
 The theoretical framework underlying this library was co-authored with **Prof. Peter Sussner** (IMECC — Institute of Mathematics, Statistics and Scientific Computing, University of Campinas, Brazil).
