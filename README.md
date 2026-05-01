@@ -176,5 +176,7 @@ print(f"RMSE: {results['mean_rmse']:.4f} ± {results['std_rmse']:.4f}")
 
 ## Credits
 
+The theoretical framework underlying this library was co-authored with **Prof. Peter Sussner** (IMECC — Institute of Mathematics, Statistics and Scientific Computing, University of Campinas, Brazil).
+
 Fuzzy set classes and Wang-Mendel rule learning are based on the original work of **Renato Lopes Moura**, used here with modifications:
 [https://github.com/renatolm/wang-mendel](https://github.com/renatolm/wang-mendel)
