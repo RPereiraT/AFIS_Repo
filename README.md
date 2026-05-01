@@ -2,6 +2,17 @@
 
 A Python library implementing A-FIS (A-subsethood based Fuzzy Inference System), with rule learning, inference, regression, and visualization.
 
+This library is the implementation accompanying the following conference paper:
+
+> **A-Subsethood Fuzzy Inference System**
+> *2025 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE 2025)*
+> Reims, France, 06–10 July 2025
+> DOI: [10.1109/FUZZ62266.2025.11152043](https://ieeexplore.ieee.org/document/11152043)
+
+The paper introduces an analogical reasoning scheme grounded in lattice theory that uses a novel subsethood measure to handle sparse fuzzy rule bases — directly activating the most relevant rules without requiring rule interpolation. An algorithmic strategy for regression and time series prediction is proposed, constructing a dedicated fuzzy inference system for each training point and combining their outputs via a distance-weighted approach. Experimental results demonstrate competitive performance with fewer rules compared to interpolation-based methods.
+
+A preprint version of the paper is available in this repository: [`AFIS_FUZZ_IEEE_2025.pdf`](AFIS_FUZZ_IEEE_2025.pdf).
+
 ---
 
 ## Package Structure
