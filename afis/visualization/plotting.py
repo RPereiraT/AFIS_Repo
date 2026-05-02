@@ -134,7 +134,7 @@ def plot_results(rule_base, input_data, output, U, y_crisp, title_suffix=""):
     """
     Plot antecedents with inputs and consequents with output.
     Works for any number of dimensions.
-    
+
     Parameters:
     - rule_base: FuzzyRuleBase object
     - input_data: For 1D: single Trapezoidal object
@@ -143,9 +143,22 @@ def plot_results(rule_base, input_data, output, U, y_crisp, title_suffix=""):
     - U: Output domain values
     - y_crisp: Defuzzified output value
     - title_suffix: Optional suffix for plot titles
+
+    Returns:
+    - figs_antecedents: list of Figure objects (one per input dimension)
+    - fig_consequents: Figure object for the output plot
     """
+    _LAYOUT = dict(
+        width=700, height=400,
+        plot_bgcolor='white', paper_bgcolor='white',
+        showlegend=True,
+        yaxis_range=[0, 1.1],
+        xaxis=dict(showgrid=False, zeroline=False),
+        yaxis=dict(showgrid=False, zeroline=False),
+    )
+
     num_dims = len(rule_base.inputRanges)
-    
+
     # Auto-detect 1D vs ND: if input_data is a single Trapezoidal, wrap it in a list
     if isinstance(input_data, Trapezoidal):
         input_list = [input_data]
@@ -153,66 +166,68 @@ def plot_results(rule_base, input_data, output, U, y_crisp, title_suffix=""):
     else:
         input_list = input_data
         is_1d = (num_dims == 1)
-    
+
     if len(input_list) != num_dims:
         raise ValueError(f"Number of inputs ({len(input_list)}) must match number of dimensions ({num_dims})")
-    
+
+    figs_antecedents = []
+
     # Plot antecedents with inputs (one plot per dimension)
     for dim_idx in range(num_dims):
         fig = go.Figure()
-        
+
         # Get unique antecedents for this dimension
         antecedents = []
         for rule in rule_base.ruleBase:
             ant = rule.antecedents[dim_idx]
             if ant not in antecedents:
                 antecedents.append(ant)
-        
-        x_domain = np.linspace(rule_base.inputRanges[dim_idx][0], 
+
+        x_domain = np.linspace(rule_base.inputRanges[dim_idx][0],
                               rule_base.inputRanges[dim_idx][1], 200)
         for ant in antecedents:
             y_membership = [ant.set.pertinence(xi) for xi in x_domain]
-            fig.add_trace(go.Scatter(x=x_domain, y=y_membership, 
-                                    mode='lines', name=f'{ant.name}', 
+            fig.add_trace(go.Scatter(x=x_domain, y=y_membership,
+                                    mode='lines', name=f'{ant.name}',
                                     line=dict(width=2),
                                     opacity=0.5))
-        
+
         # Add input for this dimension
         input_mf = input_list[dim_idx]
-        
+
         # Check input type and handle appropriately
         is_gaussian = isinstance(input_mf, Gaussian)
-        
+
         if is_gaussian:
             # Gaussian input: always draw as membership function
             y_input = [input_mf.pertinence(xi) for xi in x_domain]
-            fig.add_trace(go.Scatter(x=x_domain, y=y_input, 
-                                    mode='lines', name=f'Input (Gaussian)', 
+            fig.add_trace(go.Scatter(x=x_domain, y=y_input,
+                                    mode='lines', name=f'Input (Gaussian)',
                                     line=dict(color='red', width=3)))
         elif hasattr(input_mf, 'ini'):
             # Trapezoidal-style input: check if crisp
-            is_crisp = (input_mf.ini == input_mf.top1 == 
+            is_crisp = (input_mf.ini == input_mf.top1 ==
                         input_mf.top2 == input_mf.end)
-            
+
             if is_crisp:
                 # Draw crisp input as a vertical line
                 crisp_value = input_mf.ini
-                fig.add_trace(go.Scatter(x=[crisp_value, crisp_value], y=[0, 1], 
-                                        mode='lines', name=f'Input (crisp={crisp_value:.2f})', 
+                fig.add_trace(go.Scatter(x=[crisp_value, crisp_value], y=[0, 1],
+                                        mode='lines', name=f'Input (crisp={crisp_value:.2f})',
                                         line=dict(color='red', width=3)))
             else:
                 # Draw fuzzy input as membership function
                 y_input = [input_mf.pertinence(xi) for xi in x_domain]
-                fig.add_trace(go.Scatter(x=x_domain, y=y_input, 
-                                        mode='lines', name='Input', 
+                fig.add_trace(go.Scatter(x=x_domain, y=y_input,
+                                        mode='lines', name='Input',
                                         line=dict(color='red', width=3)))
         else:
             # Generic membership function with pertinence method
             y_input = [input_mf.pertinence(xi) for xi in x_domain]
-            fig.add_trace(go.Scatter(x=x_domain, y=y_input, 
-                                    mode='lines', name='Input', 
+            fig.add_trace(go.Scatter(x=x_domain, y=y_input,
+                                    mode='lines', name='Input',
                                     line=dict(color='red', width=3)))
-        
+
         # Title depends on dimensionality
         if is_1d:
             title = f"Antecedents and Input{title_suffix}"
@@ -220,40 +235,41 @@ def plot_results(rule_base, input_data, output, U, y_crisp, title_suffix=""):
         else:
             title = f"Dimension {dim_idx+1} - Antecedents and Input{title_suffix}"
             xaxis_title = f"Input {dim_idx+1} Domain"
-        
-        fig.update_layout(title=title, xaxis_title=xaxis_title, 
-                         yaxis_title="Membership", yaxis_range=[0, 1.1], 
-                         height=400, showlegend=True)
+
+        fig.update_layout(title=title, xaxis_title=xaxis_title,
+                         yaxis_title="Membership", **_LAYOUT)
         fig.show()
-    
+        figs_antecedents.append(fig)
+
     # Plot consequents with output (same for both 1D and ND)
-    fig2 = go.Figure()
+    fig_consequents = go.Figure()
     consequents = []
     for rule in rule_base.ruleBase:
         cons = rule.consequent
         if cons not in consequents:
             consequents.append(cons)
-    
-    x_domain_out = np.linspace(rule_base.outputRange[0], 
+
+    x_domain_out = np.linspace(rule_base.outputRange[0],
                               rule_base.outputRange[1], 200)
     for cons in consequents:
         y_membership = [cons.set.pertinence(xi) for xi in x_domain_out]
-        fig2.add_trace(go.Scatter(x=x_domain_out, y=y_membership, 
-                                 mode='lines', name=f'{cons.name}', 
+        fig_consequents.add_trace(go.Scatter(x=x_domain_out, y=y_membership,
+                                 mode='lines', name=f'{cons.name}',
                                  line=dict(width=2),
                                  opacity=0.5))
-    
-    fig2.add_trace(go.Scatter(x=U, y=output, mode='lines', 
+
+    fig_consequents.add_trace(go.Scatter(x=U, y=output, mode='lines',
                              name='Output', line=dict(color='red', width=3)))
-    fig2.add_trace(go.Scatter(x=[y_crisp, y_crisp], y=[0, 1], 
-                             mode='lines', 
-                             name=f'Defuzzified = {y_crisp:.2f}', 
+    fig_consequents.add_trace(go.Scatter(x=[y_crisp, y_crisp], y=[0, 1],
+                             mode='lines',
+                             name='Defuzzified',
                              line=dict(color='green', width=2, dash='dot')))
-    fig2.update_layout(title=f"Consequents and Output{title_suffix}", 
-                      xaxis_title="Output Domain", 
-                      yaxis_title="Membership", 
-                      yaxis_range=[0, 1.1], height=400, showlegend=True)
-    fig2.show()
+    fig_consequents.update_layout(title=f"Consequents and Output{title_suffix}",
+                      xaxis_title="Output Domain",
+                      yaxis_title="Membership", **_LAYOUT)
+    fig_consequents.show()
+
+    return figs_antecedents, fig_consequents
 
 
 def plot_antecedents_stacked(rule_base, input_data, title="Antecedents by Dimension"):
